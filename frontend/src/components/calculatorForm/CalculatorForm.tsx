@@ -18,8 +18,6 @@ export const CalculatorForm = ({
 
   const [result, setResult] = useState(null);
 
-  console.log(result);
-
   const onSubmit = async (data: MortgageFormData) => {
     try {
       const response = await fetch("http://localhost:3000/calculate-mortgage", {
