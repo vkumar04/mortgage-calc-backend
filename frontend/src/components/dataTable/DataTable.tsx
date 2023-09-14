@@ -12,7 +12,6 @@ interface DataTableProps {
 }
 
 export const DataTable = ({ amortizationData }: DataTableProps) => {
-  console.log(amortizationData);
   const columnHelper = createColumnHelper<amortizationData>();
   const columns = useMemo(
     () => [
@@ -47,11 +46,9 @@ export const DataTable = ({ amortizationData }: DataTableProps) => {
     getPaginationRowModel: getPaginationRowModel(),
   });
 
-  console.log(amortizationData);
-
-  // if (amortizationData?.length === 0) {
-  //   return <div>Fill out the form to display table</div>;
-  // }
+  if (amortizationData?.length === 0) {
+    return <div>Fill out the form to display table</div>;
+  }
 
   return (
     <div>
