@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { MortgageFormData, amortizationData } from "../../types";
 import { HistoryList } from "../historyList/HistoryList";
@@ -13,10 +13,52 @@ export const CalculatorForm = ({
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm<MortgageFormData>();
-
+  const [history, setHistory] = useState([]);
   const [result, setResult] = useState(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch("http://localhost:3000/get-collection");
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        const resultData = await response.json();
+        setHistory(resultData);
+      } catch (error) {
+        console.error("Error fetching data from the server:", error);
+      }
+    };
+    fetchData();
+  }, []);
+
+  const recalculateMortgage = async (data: MortgageFormData) => {
+    setValue("loanAmount", data.loanAmount);
+    setValue("interestRate", data.interestRate);
+    setValue("loanTerm", data.loanTerm);
+    try {
+      const response = await fetch("http://localhost:3000/calculate-mortgage", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+
+      const resultData = await response.json();
+      setResult(resultData);
+      setAmortizationData(resultData?.amortizationTable);
+    } catch (error) {
+      console.error("Error sending data to the server:", error);
+    }
+  };
 
   const onSubmit = async (data: MortgageFormData) => {
     try {
@@ -111,6 +153,10 @@ export const CalculatorForm = ({
           <p className="text-2xl">${result?.monthlyPayment}</p>
         </div>
       )}
+      <HistoryList
+        history={history}
+        recalculateMortgage={recalculateMortgage}
+      />
     </div>
   );
 };
