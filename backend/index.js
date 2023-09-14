@@ -19,6 +19,9 @@ const client = new MongoClient(uri, {
   },
 });
 
+const db = client.db("mortgage-calc");
+const collection = db.collection("input-data");
+
 async function connectToDatabase() {
   try {
     await client.connect();
@@ -83,10 +86,6 @@ app.post("/calculate-mortgage", async (req, res) => {
     loanTerm
   );
 
-  // Save user input and calculation data to MongoDB Atlas
-  const db = client.db("mortgage-calc"); // Replace with your database name
-  const collection = db.collection("input-data"); // Replace with your collection name
-
   try {
     await collection.insertOne({
       loanAmount,
@@ -100,6 +99,18 @@ app.post("/calculate-mortgage", async (req, res) => {
     res.json({ monthlyPayment, amortizationTable });
   } catch (err) {
     console.error("Error saving data to MongoDB Atlas", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+app.get("/get-collection", async (req, res) => {
+  try {
+    // Find all documents in the collection
+    const documents = await collection.find({}).toArray();
+
+    res.json(documents);
+  } catch (error) {
+    console.error("Error fetching documents:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 });
