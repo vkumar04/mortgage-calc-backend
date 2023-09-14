@@ -6,7 +6,7 @@ import { amortizationData } from "./types";
 
 function App() {
   const [amortizationData, setAmortizationData] = useState<amortizationData[]>(
-    [],
+    []
   );
 
   return (

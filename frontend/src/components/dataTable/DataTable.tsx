@@ -12,6 +12,7 @@ interface DataTableProps {
 }
 
 export const DataTable = ({ amortizationData }: DataTableProps) => {
+  console.log(amortizationData);
   const columnHelper = createColumnHelper<amortizationData>();
   const columns = useMemo(
     () => [
@@ -36,7 +37,7 @@ export const DataTable = ({ amortizationData }: DataTableProps) => {
         cell: (info) => info.getValue(),
       }),
     ],
-    [columnHelper],
+    [columnHelper]
   );
 
   const table = useReactTable({
@@ -46,22 +47,24 @@ export const DataTable = ({ amortizationData }: DataTableProps) => {
     getPaginationRowModel: getPaginationRowModel(),
   });
 
-  if (amortizationData.length === 0) {
-    return <div>Fill out the form to display table</div>;
-  }
+  console.log(amortizationData);
+
+  // if (amortizationData?.length === 0) {
+  //   return <div>Fill out the form to display table</div>;
+  // }
 
   return (
     <div>
       <h1>Amortization Table</h1>
       <table className="table table-zebra">
         <thead>
-          {table.getHeaderGroups().map((headerGroup) => (
+          {table.getHeaderGroups()?.map((headerGroup) => (
             <tr key={headerGroup.id}>
               {headerGroup.headers.map((header) => (
                 <th key={header.id}>
                   {flexRender(
                     header.column.columnDef.header,
-                    header.getContext(),
+                    header.getContext()
                   )}
                 </th>
               ))}
@@ -69,7 +72,7 @@ export const DataTable = ({ amortizationData }: DataTableProps) => {
           ))}
         </thead>
         <tbody>
-          {table.getRowModel().rows.map((row) => (
+          {table.getRowModel()?.rows.map((row) => (
             <tr key={row.id}>
               {row.getVisibleCells().map((cell) => (
                 <td key={cell.id}>

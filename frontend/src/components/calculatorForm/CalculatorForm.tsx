@@ -1,8 +1,6 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { MortgageFormData, amortizationData } from "../../types";
-import { calculateSchedule } from "../../util/calculateSchedule";
-import { calculateMonthlyPayment } from "../../util/monthlyPayment";
 import { HistoryList } from "../historyList/HistoryList";
 
 interface CalculatorFormProps {
@@ -15,33 +13,34 @@ export const CalculatorForm = ({
   const {
     register,
     handleSubmit,
-    setValue,
     formState: { errors },
   } = useForm<MortgageFormData>();
 
-  const [payment, setPayment] = useState<number>(0);
-  const [history, setHistory] = useState<MortgageFormData[]>([]);
+  const [result, setResult] = useState(null);
 
-  const onSubmit = (data: MortgageFormData) => {
-    const monthlyPayment = calculateMonthlyPayment(data);
-    const amortizationTable = calculateSchedule(data);
-    setAmortizationData(amortizationTable);
-    setPayment(monthlyPayment);
-    const newHistory = [...history, { ...data, result: monthlyPayment }];
-    setHistory(newHistory);
-    localStorage.setItem("mortgageHistory", JSON.stringify(newHistory));
+  console.log(result);
+
+  const onSubmit = async (data: MortgageFormData) => {
+    try {
+      const response = await fetch("http://localhost:3000/calculate-mortgage", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+
+      const resultData = await response.json();
+      setResult(resultData);
+      setAmortizationData(resultData?.amortizationTable);
+    } catch (error) {
+      console.error("Error sending data to the server:", error);
+    }
   };
-
-  const recalculateMortgage = (data: MortgageFormData) => {
-    setValue("loanAmount", data.loanAmount);
-    setValue("interestRate", data.interestRate);
-    setValue("loanTerm", data.loanTerm);
-    const monthlyPayment = calculateMonthlyPayment(data);
-    const amortizationTable = calculateSchedule(data);
-    setAmortizationData(amortizationTable);
-    setPayment(monthlyPayment);
-  };
-
   return (
     <div>
       <h1>Mortgage Calculator</h1>
@@ -108,16 +107,12 @@ export const CalculatorForm = ({
           Calculate
         </button>
       </form>
-      {payment > 0 && (
+      {result && (
         <div className="mt-4">
           <h2>Monthly Payment</h2>
-          <p className="text-2xl">${payment.toFixed(2)}</p>
+          <p className="text-2xl">${result?.monthlyPayment}</p>
         </div>
       )}
-      <HistoryList
-        history={history}
-        recalculateMortgage={recalculateMortgage}
-      />
     </div>
   );
 };
