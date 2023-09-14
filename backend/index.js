@@ -1,10 +1,12 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const { MongoClient, ServerApiVersion } = require("mongodb");
+const cors = require("cors");
 
 const app = express();
 const port = process.env.PORT || 3000;
 
+app.use(cors());
 app.use(bodyParser.json());
 
 const uri =
@@ -29,25 +31,25 @@ async function connectToDatabase() {
 connectToDatabase();
 
 // Mortgage calculation function
-function calculateMortgage(principal, interestRate, loanTerm) {
+function calculateMortgage(loanAmount, interestRate, loanTerm) {
   const monthlyInterestRate = interestRate / 100 / 12;
   const numberOfPayments = loanTerm * 12;
   const monthlyPayment =
-    (principal *
+    (loanAmount *
       (monthlyInterestRate * (1 + monthlyInterestRate) ** numberOfPayments)) /
     ((1 + monthlyInterestRate) ** numberOfPayments - 1);
   return monthlyPayment.toFixed(2);
 }
 
 // Generate amortization table function
-function generateAmortizationTable(principal, interestRate, loanTerm) {
+function generateAmortizationTable(loanAmount, interestRate, loanTerm) {
   const monthlyInterestRate = interestRate / 100 / 12;
   const numberOfPayments = loanTerm * 12;
-  const monthlyPayment = calculateMortgage(principal, interestRate, loanTerm);
+  const monthlyPayment = calculateMortgage(loanAmount, interestRate, loanTerm);
 
   const amortizationTable = [];
 
-  let remainingBalance = principal;
+  let remainingBalance = loanAmount;
 
   for (let month = 1; month <= numberOfPayments; month++) {
     const interestPayment = remainingBalance * monthlyInterestRate;
@@ -68,15 +70,15 @@ function generateAmortizationTable(principal, interestRate, loanTerm) {
 
 // API endpoint to calculate mortgage and save data to MongoDB Atlas
 app.post("/calculate-mortgage", async (req, res) => {
-  const { principal, interestRate, loanTerm } = req.body;
+  const { loanAmount, interestRate, loanTerm } = req.body;
 
-  if (!principal || !interestRate || !loanTerm) {
+  if (!loanAmount || !interestRate || !loanTerm) {
     return res.status(400).json({ error: "Missing parameters" });
   }
 
-  const monthlyPayment = calculateMortgage(principal, interestRate, loanTerm);
+  const monthlyPayment = calculateMortgage(loanAmount, interestRate, loanTerm);
   const amortizationTable = generateAmortizationTable(
-    principal,
+    loanAmount,
     interestRate,
     loanTerm
   );
@@ -87,7 +89,7 @@ app.post("/calculate-mortgage", async (req, res) => {
 
   try {
     await collection.insertOne({
-      principal,
+      loanAmount,
       interestRate,
       loanTerm,
       monthlyPayment,
