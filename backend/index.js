@@ -57,9 +57,9 @@ function generateAmortizationTable(loanAmount, interestRate, loanTerm) {
 
     amortizationTable.push({
       month,
-      principalPayment: principalPayment.toFixed(2),
-      interestPayment: interestPayment.toFixed(2),
-      remainingBalance: remainingBalance.toFixed(2),
+      payment: Number(principalPayment).toFixed(2),
+      interest: Number(interestPayment).toFixed(2),
+      balance: Number(remainingBalance).toFixed(2),
     });
 
     remainingBalance -= principalPayment;
