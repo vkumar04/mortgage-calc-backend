@@ -77,6 +77,7 @@ export const CalculatorForm = ({
       const resultData = await response.json();
       setResult(resultData);
       setAmortizationData(resultData?.amortizationTable);
+      setHistory([...history, data]);
     } catch (error) {
       console.error("Error sending data to the server:", error);
     }
